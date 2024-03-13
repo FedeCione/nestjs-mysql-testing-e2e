@@ -6,11 +6,11 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { Profile } from './profile.entity';
-import { Post } from 'src/posts/post.entity';
+import { Profiles } from './profiles.entity';
+import { Posts } from './posts.entity';
 
 @Entity({ name: 'users' })
-export class User {
+export class Users {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -23,13 +23,10 @@ export class User {
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ nullable: true })
-  authStrategy: string;
-
-  @OneToOne(() => Profile)
+  @OneToOne(() => Profiles)
   @JoinColumn()
-  profile: Profile;
+  profile: Profiles;
 
-  @OneToMany(() => Post, post => post.author)
-  posts: Post[]
+  @OneToMany(() => Posts, (post) => post.author)
+  posts: Posts[];
 }

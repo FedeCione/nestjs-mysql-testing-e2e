@@ -16,6 +16,13 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@configs/*":  ["src/configs/*"],
+      "@database/*":  ["src/database/*"],
+      "@modules/*":  ["src/app/modules/*"],
+      "@shared/*":  ["src/app/shared/*"],
+      "@entities/*":  ["src/database/entities/*"],
+    }
   }
 }

@@ -1,7 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('user_profile')
-export class Profile {
+@Entity({ name: 'profiles' })
+export class Profiles {
   @PrimaryGeneratedColumn()
   id: number;
 

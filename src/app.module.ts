@@ -1,26 +1,24 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PostsModule } from './posts/posts.module';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import helmet from 'helmet';
+import morgan from './configs/morgan.config';
+
+import { MySQLClientModule } from './database/mysql-client.module';
+import { UsersModule } from '@modules/users/users.module';
+import { PostsModule } from '@modules/posts/posts.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: '127.0.0.1',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'nestdb',
-      entities: [ __dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
+    /* Nest/Config Modules */
+    ConfigModule.forRoot(),
+    MySQLClientModule,
+    /* API Modules */
     UsersModule,
     PostsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(helmet(), morgan).forRoutes('*');
+  }
+}

@@ -1,17 +1,17 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './user.entity';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateProfileDto } from './dto/create-profile.dto';
-import { Profile } from './profile.entity';
+import { CreateUserDto } from './users.dto';
+import { UpdateUserDto } from './users.dto';
+import { CreateProfileDto } from './users.dto';
+import { Users } from '@entities/users.entity';
+import { Profiles } from '@entities/profiles.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(Profile) private profileRepository: Repository<Profile>,
+    @InjectRepository(Users) private userRepository: Repository<Users>,
+    @InjectRepository(Profiles) private profileRepository: Repository<Profiles>,
   ) {}
 
   getUsers() {
