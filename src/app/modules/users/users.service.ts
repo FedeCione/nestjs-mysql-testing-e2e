@@ -14,10 +14,12 @@ export class UsersService {
     @InjectRepository(Profiles) private profileRepository: Repository<Profiles>,
   ) {}
 
-  getUsers() {
-    return this.userRepository.find({
+  async getUsers() {
+    const response = await this.userRepository.find({
       relations: ['posts', 'profile'],
     });
+    
+    return response;
   }
 
   async getUser(id: number) {

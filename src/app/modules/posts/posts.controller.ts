@@ -6,14 +6,14 @@ import { PostsService } from './posts.service';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
-  constructor(private postsService: PostsService) {}
+  constructor(private readonly postsService: PostsService) {}
 
   @Get()
   @ApiOperation({ description: 'Get Posts' })
   @ApiResponse({ status: 200, description: 'Posts getted successfully' })
   @ApiResponse({ status: 404, description: 'Posts not found' })
   getPosts() {
-    return this.postsService.GetPosts();
+    return this.postsService.getPosts();
   }
 
   @Post()

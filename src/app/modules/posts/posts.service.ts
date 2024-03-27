@@ -8,9 +8,32 @@ import { CreatePostDto } from './posts.dto';
 @Injectable()
 export class PostsService {
   constructor(
-    @InjectRepository(Posts) private postsRepository: Repository<Posts>,
+    @InjectRepository(Posts)
+    private readonly postsRepository: Repository<Posts>,
     private usersService: UsersService,
   ) {}
+
+  async getPosts() {
+    const response = await this.postsRepository.find({
+      relations: ['author'],
+    });
+
+    if(response.length <= 0) {
+      return {
+        status: 404,
+        data: {
+          message: "Post/s not found"
+        }
+      }
+    }
+
+    return {
+      status: 200,
+      data: {
+        posts: response
+      }
+    };
+  }
 
   async CreatePost(post: CreatePostDto) {
     const userFound = await this.usersService.getUser(post.authorId);
@@ -21,11 +44,5 @@ export class PostsService {
 
     const newPost = this.postsRepository.create(post);
     return this.postsRepository.save(newPost);
-  }
-
-  GetPosts() {
-    return this.postsRepository.find({
-      relations: ['author'],
-    });
   }
 }
