@@ -1,9 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersService } from '@modules/users/users.service';
 import { Posts } from '@entities/posts.entity';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from './posts.dto';
+import { ErrorManager } from '@shared/utils/error.manager';
 
 @Injectable()
 export class PostsService {
@@ -14,35 +15,38 @@ export class PostsService {
   ) {}
 
   async getPosts() {
-    const response = await this.postsRepository.find({
-      relations: ['author'],
-    });
+    try {
+      const posts = await this.postsRepository.find();
 
-    if(response.length <= 0) {
-      return {
-        status: 404,
-        data: {
-          message: "Post/s not found"
-        }
+      if (posts.length === 0) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'Post/s not found',
+        });
       }
+
+      return posts;
+    } catch (error) {
+      ErrorManager.createSignatureError(error.message);
     }
-
-    return {
-      status: 200,
-      data: {
-        posts: response
-      }
-    };
   }
 
   async CreatePost(post: CreatePostDto) {
-    const userFound = await this.usersService.getUser(post.authorId);
+    try {
+      const user = await this.usersService.getUser(post.authorId);
 
-    if (!userFound) {
-      return new HttpException('User not found', HttpStatus.NOT_FOUND);
+      if (!user) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      const createdPost = this.postsRepository.create(post);
+      const savedPost = this.postsRepository.save(createdPost);
+      return savedPost;
+    } catch (error) {
+      ErrorManager.createSignatureError(error.message);
     }
-
-    const newPost = this.postsRepository.create(post);
-    return this.postsRepository.save(newPost);
   }
 }

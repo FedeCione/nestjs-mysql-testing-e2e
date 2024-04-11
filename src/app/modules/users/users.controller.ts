@@ -17,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { Users } from '@entities/users.entity';
-import { CreateUserDto, UpdateUserDto, CreateProfileDto } from './users.dto';
+import { CreateUserDto, UpdateUserDto } from './users.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -51,7 +51,10 @@ export class UsersController {
     status: 200,
     description: 'User created successfully',
   })
-  @ApiResponse({ status: 304, description: 'User already exists' })
+  @ApiResponse({
+    status: 304,
+    description: 'User with that email already exists',
+  })
   createUser(@Body() body: CreateUserDto) {
     return this.usersService.createUser(body);
   }
@@ -81,20 +84,5 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User with ID # not found' })
   deleteUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.deleteUser(id);
-  }
-
-  @Post(':id/profile')
-  @ApiOperation({ description: 'Create Profile' })
-  @ApiBody({ type: CreateProfileDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Profile created successfully',
-  })
-  @ApiResponse({ status: 304, description: 'Profile already exists' })
-  createProfile(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() profile: CreateProfileDto,
-  ) {
-    return this.usersService.createProfile(id, profile);
   }
 }

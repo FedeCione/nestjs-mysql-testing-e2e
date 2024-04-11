@@ -23,7 +23,6 @@ export class PostsController {
     status: 200,
     description: 'Post created successfully',
   })
-  @ApiResponse({ status: 304, description: 'Post already exists' })
   createPost(@Body() body: CreatePostDto) {
     return this.postsService.CreatePost(body);
   }

@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 // Entities
 import { Users } from '@entities/users.entity';
 import { Posts } from '@entities/posts.entity';
-import { Profiles } from '@entities/profiles.entity';
 
 @Module({
   imports: [
@@ -17,7 +16,7 @@ import { Profiles } from '@entities/profiles.entity';
       username: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASS,
       database: process.env.MYSQL_BBDD,
-      entities: [Users, Posts, Profiles],
+      entities: [Users, Posts],
       synchronize: true,
     }),
   ],

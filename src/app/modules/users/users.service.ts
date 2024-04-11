@@ -3,85 +3,110 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './users.dto';
 import { UpdateUserDto } from './users.dto';
-import { CreateProfileDto } from './users.dto';
 import { Users } from '@entities/users.entity';
-import { Profiles } from '@entities/profiles.entity';
+import { ErrorManager } from '@shared/utils/error.manager';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users) private userRepository: Repository<Users>,
-    @InjectRepository(Profiles) private profileRepository: Repository<Profiles>,
   ) {}
 
   async getUsers() {
-    const response = await this.userRepository.find({
-      relations: ['posts', 'profile'],
-    });
-    
-    return response;
+    try {
+      const users = await this.userRepository.find({
+        relations: ['posts'],
+      });
+
+      if (users.length === 0) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'User/s not found',
+        });
+      }
+
+      return users;
+    } catch (error) {
+      ErrorManager.createSignatureError(error.message);
+    }
   }
 
   async getUser(id: number) {
-    const userFound = await this.userRepository.findOne({
-      where: {
-        id,
-      },
-      relations: ['posts', 'profile'],
-    });
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          id,
+        },
+        relations: ['posts'],
+      });
 
-    if (!userFound) {
-      return new HttpException('User not found', HttpStatus.NOT_FOUND);
+      if (!user) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      return user;
+    } catch (error) {
+      ErrorManager.createSignatureError(error.message);
     }
-
-    return userFound;
   }
 
-  async createUser(user: CreateUserDto) {
-    const userFound = await this.userRepository.findOne({
-      where: { username: user.username },
-    });
+  async createUser(body: CreateUserDto) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { email: body.email },
+      });
 
-    if (userFound) {
-      return new HttpException('User already exist', HttpStatus.CONFLICT);
+      if (user) {
+        throw new ErrorManager({
+          type: 'CONFLICT',
+          message: 'User already exist',
+        });
+      }
+
+      const createdUser = this.userRepository.create(body);
+      const savedUser = this.userRepository.save(createdUser);
+      return savedUser;
+    } catch (error) {
+      ErrorManager.createSignatureError(error.message);
     }
-
-    const newUser = this.userRepository.create(user);
-    return this.userRepository.save(newUser);
   }
 
-  async updateUser(id: number, user: UpdateUserDto) {
-    const userFound = await this.userRepository.findOne({ where: { id } });
+  async updateUser(id: number, body: UpdateUserDto) {
+    try {
+      const user = await this.userRepository.findOne({ where: { id } });
 
-    if (!userFound) {
-      return new HttpException('User not found', HttpStatus.NOT_FOUND);
+      if (!user) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      const updatedUser = Object.assign(user, body);
+      const savedUser = this.userRepository.save(updatedUser);
+      return savedUser;
+    } catch (error) {
+      ErrorManager.createSignatureError(error.message);
     }
-
-    const updatedUser = Object.assign(userFound, user);
-    return this.userRepository.save(updatedUser);
   }
 
   async deleteUser(id: number) {
-    const result = await this.userRepository.delete({ id });
+    try {
+      const user = await this.userRepository.delete({ id });
 
-    if (result.affected === 0) {
-      return new HttpException('User not found', HttpStatus.NOT_FOUND);
+      if (user.affected === 0) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      return user;
+    } catch (error) {
+      ErrorManager.createSignatureError(error.message);
     }
-
-    return result;
-  }
-
-  async createProfile(id: number, profile: CreateProfileDto) {
-    const userFound = await this.userRepository.findOne({ where: { id } });
-
-    if (!userFound) {
-      return new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    const newProfile = this.profileRepository.create(profile);
-    const savedProfile = await this.profileRepository.save(newProfile);
-    userFound.profile = savedProfile;
-
-    return this.userRepository.save(userFound);
   }
 }

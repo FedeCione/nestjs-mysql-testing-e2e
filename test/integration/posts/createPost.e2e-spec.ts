@@ -4,7 +4,7 @@ import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../../../src/app.module';
 import { DataSource } from 'typeorm';
 
-describe('/GET Users', () => {
+describe('/POST Posts', () => {
   let app: INestApplication;
 
   // Initialize app before all tests
@@ -13,12 +13,12 @@ describe('/GET Users', () => {
       imports: [AppModule],
     }).compile();
 
+    // Clean tables of database before all tests
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
     await app.init();
 
-    // Clean tables of database before all tests
-    const dataSource = await app.get(DataSource);
+    const dataSource = app.get(DataSource);
     await dataSource.query('DELETE FROM posts');
     await dataSource.query('DELETE FROM users');
   });
@@ -30,12 +30,12 @@ describe('/GET Users', () => {
     await dataSource.query('DELETE FROM users');
   });
 
-  // Close app after all tests and clean table in database
+  // Close app after all tests
   afterAll(async () => {
     await app.close();
   });
 
-  it('Get users: 200 status code', async () => {
+  it('Create post: 201 status code', async () => {
     const createdUser = await request(app.getHttpServer())
       .post('/api/users')
       .send({
@@ -43,30 +43,24 @@ describe('/GET Users', () => {
         password: '123456',
       });
     const userId = createdUser.body.id;
-    const createdAt = createdUser.body.createdAt;
-
     return request(app.getHttpServer())
-      .get('/api/users')
-      .expect((res) => {
-        expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              id: userId,
-              email: 'fede@gmail.com',
-              password: '123456',
-              createdAt: createdAt,
-              posts: [],
-            }),
-          ]),
-        );
+      .post('/api/posts')
+      .send({
+        title: 'Post',
+        content: 'Post Content',
+        authorId: userId,
       })
-      .expect(200);
+      .expect(201);
   });
 
-  it('Get users: 404 status code', async () => {
-    return request(app.getHttpServer()).get('/api/users').expect({
-      statusCode: 404,
-      message: 'NOT_FOUND - User/s not found',
-    });
+  it('Create post - User not found: 404 status code', async () => {
+    return request(app.getHttpServer())
+      .post('/api/posts')
+      .send({
+        title: 'Post',
+        content: 'Post Content',
+        authorId: 1,
+      })
+      .expect(404);
   });
 });
